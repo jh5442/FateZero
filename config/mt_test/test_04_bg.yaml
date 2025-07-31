@@ -1,11 +1,13 @@
-# CUDA_VISIBLE_DEVICES=7 python test_fatezero.py --config config/teaser/jeep_watercolor.yaml
+# CUDA_VISIBLE_DEVICES=0 python test_fatezero.py --config config/attribute/bear_tiger_lion_leopard.yaml
 
 pretrained_model_path: "/home/ubuntu/jin/models/fate_zero/stable-diffusion-v1-4"
 
+
 dataset_config:
-    path: "data/teaser_car-turn"
-    prompt: "a silver jeep driving down a curvy road in the countryside"
-    n_sample_frame: 8
+    path: "/home/ubuntu/jin/data/fate_zero/mt_test/test_04_mini"
+    prompt: "a man playing basketball in an outdoor court"
+    n_sample_frame: 20
+    # n_sample_frame: 22
     sampling_rate: 1
     stride: 80
     offset: 
@@ -14,14 +16,16 @@ dataset_config:
         top: 0
         bottom: 0
 
-
 editing_config:
-    use_invertion_latents: true
-    use_inversion_attention: true
+    use_invertion_latents: True
+    use_inversion_attention: True
     guidance_scale: 7.5
     editing_prompts: [
-        a silver jeep driving down a curvy road in the countryside,
-        watercolor painting of a silver jeep driving down a curvy road in the countryside,
+        # source prompt
+        a man playing basketball in an outdoor court,
+
+        # foreground texture style
+        a man playing basketball in an indoor court
     ]
     p2p_config:
         0: 
@@ -30,46 +34,54 @@ editing_config:
             # False: keep source attention, better for style
             is_replace_controller: False
 
-            # Semantic layout preserving. High steps, replace more cross attention to preserve semantic layout
+            # Semantic preserving and replacement Debug me
             cross_replace_steps: 
                 default_: 0.8
 
             # Source background structure preserving, in [0, 1]. 
             # e.g., =0.6 Replace the first 60% steps self-attention
-            self_replace_steps: 0.9
+            self_replace_steps: 0.6
 
             
             # Amplify the target-words cross attention, larger value, more close to target
-            # eq_params: 
-            #     words: ["", ""]
-            #     values: [10,10] 
+            eq_params: 
+                words: ["silver", "sculpture"]
+                values: [2,2] 
             
             # Target structure-divergence hyperparames
             # If you change the shape of object better to use all three line, otherwise, no need.
             # Without following three lines, all self-attention will be replaced
-            # blend_words: [['jeep',], ["car",]] 
+            blend_words: [['cat',], ["cat",]] 
             blend_self_attention:  True
-            # blend_latents: False   #  Directly copy the latents, performance not so good in our case      
+            # blend_latents: False   # performance not so good in our case, need debug            
             blend_th: [2, 2]
             # preserve source structure of blend_words , [0, 1]
-            # default is blend_th: [2, 2]  # replace full-resolution edit source with self-attention 
-            # blend_th-> [0.0, 0.0], mask -> 1, use more edit self-attention, more generated shape, less source acttention
+            # default is blend_th: [2, 2]  # preserve all source self-attention 
+            # blend_th : [0.0, 0.0], mask -> 1, use more att_replace, more generated attention, less source acttention
             
-
+        
         1:
+            is_replace_controller: true
             cross_replace_steps: 
-                default_: 0.8
-            self_replace_steps: 0.8
+                default_: 0.7
+            self_replace_steps: 0.7
+        2:
+            is_replace_controller: true
+            cross_replace_steps: 
+                default_: 0.7
+            self_replace_steps: 0.7
+        3:
+            is_replace_controller: true
+            cross_replace_steps: 
+                default_: 0.7
+            self_replace_steps: 0.7
+
             
-            eq_params: 
-                words: ["watercolor"]
-                values: [10] # amplify attention to the word "tiger" by *2 
-            use_inversion_attention: True
-            is_replace_controller: False
 
             
     clip_length: "${..dataset_config.n_sample_frame}"
     sample_seeds: [0]
+    
 
     num_inference_steps: 50
     prompt2prompt_edit: True

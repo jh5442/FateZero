@@ -233,7 +233,6 @@ def test(
     images = batch["images"].to(dtype=weight_dtype)
     images = rearrange(images, "b c f h w -> (b f) c h w")
 
-
     if accelerator.is_main_process:
 
         if validation_sample_logger is not None:
